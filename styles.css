@@ -113,6 +113,94 @@ button:hover {
   margin-bottom: 20px;
 }
 
+/* Key display panel styling */
+.key-panel {
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 15px;
+  margin: 15px 0;
+}
+
+.key-panel h3 {
+  margin-bottom: 15px;
+  color: #2c3e50;
+}
+
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+  resize: vertical;
+  background-color: #f5f5f5;
+}
+
+.copy-btn {
+  background-color: #6c757d;
+  color: white;
+  padding: 5px 10px;
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.copy-btn:hover {
+  background-color: #5a6268;
+}
+
+#fingerprint-display {
+  font-family: monospace;
+  font-size: 14px;
+  background-color: #f5f5f5;
+}
+
+/* Notification for copy */
+.copy-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  display: none;
+  z-index: 1000;
+}
+
+/* Response styling for host verification */
+.host-verify-panel {
+  margin-top: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+}
+
+.verify-note {
+  font-size: 14px;
+  color: #6c757d;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+#host-fingerprint {
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-align: center;
+  background-color: #f8f9fa;
+  color: #28a745;
+}
+
+.host-verify-panel h3 {
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
 /* Responsive design */
 @media (max-width: 600px) {
   #app {

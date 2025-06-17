@@ -53,16 +53,45 @@
                 <div id="host-panel" style="display: none;">
                     <h2>Host Controls</h2>
                     <div id="host-status" class="status success">You are the host</div>
+                    
+                    <div id="key-display-panel" class="key-panel">
+                        <h3>Your Host Keys</h3>
+                        <div class="form-group">
+                            <label for="public-key-display">Public Key (share this):</label>
+                            <textarea id="public-key-display" readonly rows="5"></textarea>
+                            <button id="copy-public-key-btn" class="copy-btn">Copy Public Key</button>
+                        </div>
+                        <div class="form-group">
+                            <label for="fingerprint-display">Key Fingerprint (for verification):</label>
+                            <input type="text" id="fingerprint-display" readonly>
+                            <button id="copy-fingerprint-btn" class="copy-btn">Copy Fingerprint</button>
+                        </div>
+                    </div>
+                    
                     <button id="start-game-btn">Start Game</button>
                     <button id="reset-game-btn">Reset Game</button>
                 </div>
+                
                 <div id="player-panel">
                     <h2>Player Controls</h2>
                     <div id="player-status" class="status">Connected as player</div>
+                    
+                    <div id="host-verify-panel" class="host-verify-panel" style="display: none;">
+                        <h3>Verify Host</h3>
+                        <p>Verify the host's identity by checking the fingerprint:</p>
+                        <div class="form-group">
+                            <label for="host-fingerprint">Host Fingerprint:</label>
+                            <input type="text" id="host-fingerprint" readonly>
+                        </div>
+                        <p class="verify-note">Ask the host to share their fingerprint and verify it matches the one above.</p>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
+    
+    <!-- Notification element for copy operations -->
+    <div class="copy-notification" style="display: none;"></div>
 
     <script type="module" src="auth.js"></script>
     <script type="module" src="game.js"></script>

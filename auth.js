@@ -22,6 +22,12 @@ class HostAuth {
         this.hostPanel = document.getElementById('host-panel');
         this.playerPanel = document.getElementById('player-panel');
 
+        // Key display elements
+        this.publicKeyDisplay = document.getElementById('public-key-display');
+        this.fingerprintDisplay = document.getElementById('fingerprint-display');
+        this.copyPublicKeyBtn = document.getElementById('copy-public-key-btn');
+        this.copyFingerprintBtn = document.getElementById('copy-fingerprint-btn');
+
         // State
         this.isHost = false;
         this.privateKey = null;
@@ -35,6 +41,15 @@ class HostAuth {
         // Add event listeners
         this.generateKeysBtn.addEventListener('click', () => this.generateHostKeys());
         this.loginHostBtn.addEventListener('click', () => this.loginAsHost());
+
+        // Add copy button event listeners
+        if (this.copyPublicKeyBtn) {
+            this.copyPublicKeyBtn.addEventListener('click', () => this.copyToClipboard(this.publicKeyDisplay.value, 'Public key copied!'));
+        }
+
+        if (this.copyFingerprintBtn) {
+            this.copyFingerprintBtn.addEventListener('click', () => this.copyToClipboard(this.fingerprintDisplay.value, 'Fingerprint copied!'));
+        }
 
         // Check if keys already exist
         this.checkExistingKeys();
@@ -70,12 +85,16 @@ class HostAuth {
             const privateKey = crypt.getPrivateKey();
             const publicKey = crypt.getPublicKey();
 
+            // Generate a fingerprint for the public key
+            const fingerprint = this.generateKeyFingerprint(publicKey);
+
             // Encrypt private key with PIN
             const encryptedPrivateKey = CryptoJS.AES.encrypt(privateKey, pin).toString();
 
             // Store keys in localStorage
             localStorage.setItem(this.PRIVATE_KEY_STORAGE, encryptedPrivateKey);
             localStorage.setItem(this.PUBLIC_KEY_STORAGE, publicKey);
+            localStorage.setItem('host_key_fingerprint', fingerprint);
 
             this.showStatus(this.setupStatusDiv, 'Host keys generated successfully!', 'success');
 
@@ -100,6 +119,8 @@ class HostAuth {
             // Get encrypted private key from storage
             const encryptedPrivateKey = localStorage.getItem(this.PRIVATE_KEY_STORAGE);
             const publicKey = localStorage.getItem(this.PUBLIC_KEY_STORAGE);
+            const fingerprint = localStorage.getItem('host_key_fingerprint') || 
+                                this.generateKeyFingerprint(publicKey);
 
             if (!encryptedPrivateKey || !publicKey) {
                 this.showStatus(this.loginStatusDiv, 'No host keys found. Please generate keys first.', 'error');
@@ -121,6 +142,12 @@ class HostAuth {
 
             this.showStatus(this.loginStatusDiv, 'Successfully logged in as host!', 'success');
 
+            // Display keys
+            if (this.publicKeyDisplay && this.fingerprintDisplay) {
+                this.publicKeyDisplay.value = publicKey;
+                this.fingerprintDisplay.value = fingerprint;
+            }
+
             // Switch to game view
             setTimeout(() => {
                 this.authPanel.style.display = 'none';
@@ -139,6 +166,70 @@ class HostAuth {
             console.error('Error logging in as host:', error);
             this.showStatus(this.loginStatusDiv, 'Error logging in. Please try again.', 'error');
         }
+    }
+
+    // Generate a fingerprint for a public key (simplified SHA-256 hash)
+    generateKeyFingerprint(publicKey) {
+        if (!publicKey) return '';
+
+        // Generate SHA-256 hash of the public key
+        const hash = CryptoJS.SHA256(publicKey);
+        const fullHash = hash.toString(CryptoJS.enc.Hex);
+
+        // Format as XX:XX:XX:XX (taking first 8 bytes)
+        const formattedFingerprint = fullHash.substring(0, 16).match(/.{1,2}/g).join(':').toUpperCase();
+
+        return formattedFingerprint;
+    }
+
+    // Copy text to clipboard
+    copyToClipboard(text, successMessage = 'Copied!') {
+        if (!text) return;
+
+        // Create temporary textarea element
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', ''); // Make it readonly to avoid focus
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px'; // Move outside the screen
+
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        try {
+            const success = document.execCommand('copy');
+            if (success) {
+                this.showCopyNotification(successMessage);
+            } else {
+                console.error('Failed to copy text');
+            }
+        } catch (err) {
+            console.error('Error copying text: ', err);
+        }
+
+        document.body.removeChild(textarea);
+    }
+
+    // Show a notification when text is copied
+    showCopyNotification(message) {
+        // Check if notification already exists
+        let notification = document.querySelector('.copy-notification');
+
+        // Create notification if it doesn't exist
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.className = 'copy-notification';
+            document.body.appendChild(notification);
+        }
+
+        // Set notification message and display
+        notification.textContent = message;
+        notification.style.display = 'block';
+
+        // Hide notification after 2 seconds
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 2000);
     }
 
     // Sign data with the host's private key
@@ -192,6 +283,12 @@ class HostAuth {
     // Get the public key
     getPublicKey() {
         return this.publicKey || localStorage.getItem(this.PUBLIC_KEY_STORAGE);
+    }
+
+    // Get the key fingerprint
+    getKeyFingerprint() {
+        return localStorage.getItem('host_key_fingerprint') || 
+               this.generateKeyFingerprint(this.getPublicKey());
     }
 }
 

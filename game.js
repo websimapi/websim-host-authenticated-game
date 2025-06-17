@@ -9,6 +9,10 @@ class Game {
         this.playerStatus = document.getElementById('player-status');
         this.gameControls = document.getElementById('game-controls');
 
+        // Host verification elements for players
+        this.hostVerifyPanel = document.getElementById('host-verify-panel');
+        this.hostFingerprintDisplay = document.getElementById('host-fingerprint');
+
         // Game state
         this.isHost = false;
         this.room = null;
@@ -87,6 +91,7 @@ class Game {
 
     broadcastHostPublicKey() {
         const publicKey = hostAuth.getPublicKey();
+        const fingerprint = hostAuth.getKeyFingerprint();
 
         if (!publicKey) {
             console.error('No public key available to broadcast');
@@ -97,6 +102,7 @@ class Game {
         this.room.send({
             type: 'host_public_key',
             publicKey: publicKey,
+            fingerprint: fingerprint,
             clientId: this.room.clientId,
             timestamp: Date.now()
         });
@@ -106,9 +112,12 @@ class Game {
             hostInfo: {
                 clientId: this.room.clientId,
                 publicKey: publicKey,
+                fingerprint: fingerprint,
                 timestamp: Date.now()
             }
         });
+
+        console.log('Broadcast host public key with fingerprint:', fingerprint);
     }
 
     startGame() {
@@ -215,9 +224,20 @@ class Game {
                 break;
 
             case 'host_public_key':
-                console.log('Received host public key');
+                console.log('Received host public key with fingerprint:', data.fingerprint);
                 // Store the host's public key for future verification
                 localStorage.setItem('host_public_key_remote', data.publicKey);
+                localStorage.setItem('host_fingerprint_remote', data.fingerprint);
+
+                // Update player status to show host information
+                this.playerStatus.textContent = `Connected to host (${data.fingerprint})`;
+                this.playerStatus.className = 'status success';
+
+                // Show verification panel for players
+                if (!this.isHost && this.hostVerifyPanel && this.hostFingerprintDisplay) {
+                    this.hostVerifyPanel.style.display = 'block';
+                    this.hostFingerprintDisplay.value = data.fingerprint;
+                }
                 break;
 
             case 'game_command':
@@ -244,6 +264,8 @@ class Game {
 
         if (!isValid) {
             console.error('Invalid game command signature');
+            this.playerStatus.textContent = 'Warning: Received invalid command from supposed host!';
+            this.playerStatus.className = 'status error';
             return;
         }
 
@@ -253,11 +275,13 @@ class Game {
         switch (data.command) {
             case 'start':
                 this.playerStatus.textContent = 'Game started by host!';
+                this.playerStatus.className = 'status success';
                 this.gameStarted = true;
                 break;
 
             case 'reset':
                 this.playerStatus.textContent = 'Game reset by host!';
+                this.playerStatus.className = 'status success';
                 this.gameStarted = false;
                 break;
 
@@ -268,7 +292,26 @@ class Game {
 
     handleRoomStateUpdate(roomState) {
         console.log('Room state updated:', roomState);
-        // Handle room state updates here
+
+        // Check for host information in room state
+        if (roomState.hostInfo && !this.isHost) {
+            const { publicKey, fingerprint, clientId } = roomState.hostInfo;
+
+            // Store host info
+            localStorage.setItem('host_public_key_remote', publicKey);
+            localStorage.setItem('host_fingerprint_remote', fingerprint);
+
+            // Display host fingerprint for verification
+            if (this.hostVerifyPanel && this.hostFingerprintDisplay) {
+                this.hostVerifyPanel.style.display = 'block';
+                this.hostFingerprintDisplay.value = fingerprint;
+            }
+
+            // Update player status
+            const hostUsername = this.room.peers[clientId]?.username || 'Unknown';
+            this.playerStatus.textContent = `Connected to host: ${hostUsername} (${fingerprint})`;
+            this.playerStatus.className = 'status success';
+        }
     }
 
     handlePresenceUpdate(presence) {
