@@ -1,1 +1,71 @@
-<!-- v1: content unavailable -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Host-Authenticated Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "crypto-js": "https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js",
+            "jsencrypt": "https://cdn.jsdelivr.net/npm/jsencrypt@3.2.1/dist/jsencrypt.min.js"
+        }
+    }
+    </script>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Host-Authenticated Game</h1>
+        </header>
+        
+        <main>
+            <div id="auth-panel">
+                <div id="setup-host" class="auth-section">
+                    <h2>Setup Host Keys</h2>
+                    <p>Generate a new host key pair protected by a PIN.</p>
+                    <div class="form-group">
+                        <label for="setup-pin">Create PIN (4-8 digits):</label>
+                        <input type="password" id="setup-pin" placeholder="Enter PIN" maxlength="8" pattern="[0-9]*">
+                    </div>
+                    <div class="form-group">
+                        <label for="setup-confirm-pin">Confirm PIN:</label>
+                        <input type="password" id="setup-confirm-pin" placeholder="Confirm PIN" maxlength="8" pattern="[0-9]*">
+                    </div>
+                    <button id="generate-keys-btn">Generate Host Keys</button>
+                    <div id="setup-status" class="status"></div>
+                </div>
+
+                <div id="login-host" class="auth-section">
+                    <h2>Host Login</h2>
+                    <p>Enter your PIN to unlock host privileges.</p>
+                    <div class="form-group">
+                        <label for="login-pin">Host PIN:</label>
+                        <input type="password" id="login-pin" placeholder="Enter PIN" maxlength="8" pattern="[0-9]*">
+                    </div>
+                    <button id="login-host-btn">Login as Host</button>
+                    <div id="login-status" class="status"></div>
+                </div>
+            </div>
+
+            <div id="game-controls" style="display: none;">
+                <div id="host-panel" style="display: none;">
+                    <h2>Host Controls</h2>
+                    <div id="host-status" class="status success">You are the host</div>
+                    <button id="start-game-btn">Start Game</button>
+                    <button id="reset-game-btn">Reset Game</button>
+                </div>
+                <div id="player-panel">
+                    <h2>Player Controls</h2>
+                    <div id="player-status" class="status">Connected as player</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="auth.js"></script>
+    <script type="module" src="game.js"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
