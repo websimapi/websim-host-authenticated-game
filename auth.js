@@ -79,32 +79,48 @@ class HostAuth {
             return;
         }
 
-        try {
-            // Generate RSA key pair
-            const crypt = new JSEncrypt({default_key_size: 2048});
-            const privateKey = crypt.getPrivateKey();
-            const publicKey = crypt.getPublicKey();
+        // Show a "generating" message as key creation can be slow
+        this.showStatus(this.setupStatusDiv, 'Generating keys... this may take a moment.', 'info');
 
-            // Generate a fingerprint for the public key
-            const fingerprint = this.generateKeyFingerprint(publicKey);
+        // Use a short timeout to allow the UI to update with the "Generating" message
+        setTimeout(() => {
+            try {
+                // Generate RSA key pair
+                const crypt = new JSEncrypt({ default_key_size: 2048 });
 
-            // Encrypt private key with PIN
-            const encryptedPrivateKey = CryptoJS.AES.encrypt(privateKey, pin).toString();
+                // getKey() is asynchronous and uses a callback.
+                crypt.getKey(() => {
+                    const privateKey = crypt.getPrivateKey();
+                    const publicKey = crypt.getPublicKey();
 
-            // Store keys in localStorage
-            localStorage.setItem(this.PRIVATE_KEY_STORAGE, encryptedPrivateKey);
-            localStorage.setItem(this.PUBLIC_KEY_STORAGE, publicKey);
-            localStorage.setItem('host_key_fingerprint', fingerprint);
+                    if (!privateKey || !publicKey) {
+                        this.showStatus(this.setupStatusDiv, 'Failed to generate keys. Please try again.', 'error');
+                        console.error('JSEncrypt failed to generate keys.');
+                        return;
+                    }
 
-            this.showStatus(this.setupStatusDiv, 'Host keys generated successfully!', 'success');
+                    // Generate a fingerprint for the public key
+                    const fingerprint = this.generateKeyFingerprint(publicKey);
 
-            // Clear inputs
-            this.setupPinInput.value = '';
-            this.setupConfirmPinInput.value = '';
-        } catch (error) {
-            console.error('Error generating keys:', error);
-            this.showStatus(this.setupStatusDiv, 'Error generating keys. Please try again.', 'error');
-        }
+                    // Encrypt private key with PIN
+                    const encryptedPrivateKey = CryptoJS.AES.encrypt(privateKey, pin).toString();
+
+                    // Store keys in localStorage
+                    localStorage.setItem(this.PRIVATE_KEY_STORAGE, encryptedPrivateKey);
+                    localStorage.setItem(this.PUBLIC_KEY_STORAGE, publicKey);
+                    localStorage.setItem('host_key_fingerprint', fingerprint);
+
+                    this.showStatus(this.setupStatusDiv, 'Host keys generated successfully!', 'success');
+
+                    // Clear inputs
+                    this.setupPinInput.value = '';
+                    this.setupConfirmPinInput.value = '';
+                });
+            } catch (error) {
+                console.error('Error generating keys:', error);
+                this.showStatus(this.setupStatusDiv, 'Error generating keys. Please try again.', 'error');
+            }
+        }, 50); // 50ms timeout
     }
 
     loginAsHost() {
